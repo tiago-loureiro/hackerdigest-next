@@ -1,6 +1,6 @@
 import parse, { HTMLElement } from "node-html-parser"
 
-import { fetchTopStoriesFromLast12Hours, HackerNewsStory } from "./hackernews"
+import { fetchBestStoriesFromLast12Hours, HackerNewsStory } from "./hackernews"
 
 type Content = (string | string[]) | null
 export type HackerNewsStoryWithRawContent = HackerNewsStory & { rawContent: Content }
@@ -35,7 +35,7 @@ async function fetchInnerContent(url?: string): Promise<string | string[] | null
 export async function getContentsOfArticles(
   articleLimit: number
 ): Promise<HackerNewsStoryWithRawContent[] | undefined> {
-  const articleLinksAndTitles = await fetchTopStoriesFromLast12Hours(articleLimit)
+  const articleLinksAndTitles = await fetchBestStoriesFromLast12Hours(articleLimit)
   return await Promise.all(
     articleLinksAndTitles.map(async (article) => ({
       ...article,

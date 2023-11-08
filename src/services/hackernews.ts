@@ -21,9 +21,9 @@ export type HackerNewsStory = {
   postedDate: string
 }
 
-// Fetch the top story IDs
-async function fetchTopStoryIds(): Promise<number[]> {
-  const response = await fetch(`${HN_BASE_URL}/topstories.json`)
+// Fetch the best story IDs; beststories are already ordered by score
+async function fetchBestStoryIds(): Promise<number[]> {
+  const response = await fetch(`${HN_BASE_URL}/beststories.json`)
   const storyIds: number[] = await response.json()
   return storyIds
 }
@@ -40,21 +40,19 @@ async function fetchStoryDetails(id: number): Promise<HackerNewsStoryRaw | null>
 }
 
 // Fetch top stories from the last 12 hours
-export async function fetchTopStoriesFromLast12Hours(
+export async function fetchBestStoriesFromLast12Hours(
   limit: number = 10
 ): Promise<HackerNewsStory[]> {
   //   const twelveHoursAgoTimestamp = Date.now() - 12 * 60 * 60 * 1000
-  const topStoryIds = await fetchTopStoryIds()
+  const bestStoryIdsWithinLimit = (await fetchBestStoryIds()).slice(0, limit)
 
-  const storyDetailsPromises = topStoryIds.map(fetchStoryDetails)
+  const storyDetailsPromises = bestStoryIdsWithinLimit.map(fetchStoryDetails)
   const allStories = (await Promise.all(storyDetailsPromises)).filter((story) => story !== null)
 
-  const topStoriesFromLast12Hours = allStories
+  const bestStoriesFromLast12Hours = allStories.slice(0, limit)
     // .filter((story) => story && story.time * 1000 >= twelveHoursAgoTimestamp)
-    .sort((a, b) => b!.score - a!.score)
-    .slice(0, limit) as HackerNewsStoryRaw[]
 
-  return topStoriesFromLast12Hours.map((story) => ({
+  return (bestStoriesFromLast12Hours as HackerNewsStoryRaw[]).map((story) => ({
     commentUrl: `https://news.ycombinator.com/item?id=${story.id}`,
     postedDate: timeSince(story.time * 1000),
     numOfComments: story.descendants,
